@@ -2,9 +2,18 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Nav from "../components/Navigation/Nav";
 import NFTTraitsList from "../components/NFTAttributesList/NFTTraitsList";
+import Pagination from "../components/NFTAttributesList/Pagination";
 import ParseSettings from "../components/ParseSettings/ParseSettings";
+import { Trait } from "../utils/services/IPFSService";
+import { ELEMENTS_PER_PAGE } from "../utils/Settings";
+import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
+  const allTraitsQuery = trpc.ipfs.getTraits.useQuery(
+    "bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe"
+  );
+  let allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
+
   return (
     <>
       <Head>
@@ -15,6 +24,7 @@ const Home: NextPage = () => {
       <Nav></Nav>
       <ParseSettings></ParseSettings>
       <NFTTraitsList></NFTTraitsList>
+      {allTraits.length > ELEMENTS_PER_PAGE && <Pagination></Pagination>}
     </>
   );
 };

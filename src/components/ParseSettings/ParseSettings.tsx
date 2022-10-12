@@ -17,7 +17,7 @@ const ParseSettings = () => {
   const mutateMetadata = () =>
     parseMetadata.mutate({
       CID: "bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe",
-      supply: 1000,
+      supply: 500,
     });
 
   return (

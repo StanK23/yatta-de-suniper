@@ -10,9 +10,9 @@ class IPFSService {
   }
 
   //   client: IPFS;
-  static IPFS_HOSTS(CID: string, nftID: number): string[] {
+  static IPFS_HOSTS(CID: string, nftID: number, ext: string = ""): string[] {
     return [
-      `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}`,
+      `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}${ext}`,
       // `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
       // `https://${CID}.ipfs.dweb.link/${nftID}`,
       // `https://${CID}.ipfs.nftstorage.link/${nftID}`,
@@ -176,7 +176,7 @@ class IPFSService {
 
   getNFTDetails(metadata: Metadata, nftID: number): NFTDetails {
     let CID = metadata.image.split("/")[2] ?? "0";
-    let gatewayURL = IPFSService.IPFS_HOSTS(CID, nftID)[0] ?? "";
+    let gatewayURL = IPFSService.IPFS_HOSTS(CID, nftID, ".png")[0] ?? "";
 
     let nftDetails: NFTDetails = {
       id: nftID,
