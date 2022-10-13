@@ -1,5 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useState } from "react";
+import { string } from "zod";
 import Nav from "../components/Navigation/Nav";
 import NFTTraitsList from "../components/NFTAttributesList/NFTTraitsList";
 import Pagination from "../components/NFTAttributesList/Pagination";
@@ -9,9 +11,15 @@ import { ELEMENTS_PER_PAGE } from "../utils/Settings";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
-  const allTraitsQuery = trpc.ipfs.getTraits.useQuery(
-    "bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe"
-  );
+  let [CID, setCID] = useState("");
+  let [supply, setSupply] = useState(0);
+
+  const handleParseState = (parsedCID: string, parsedSupply: number) => {
+    setCID(parsedCID);
+    setSupply(parsedSupply);
+  };
+
+  const allTraitsQuery = trpc.ipfs.getTraits.useQuery(CID);
   let allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
 
   return (
@@ -22,9 +30,11 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Nav></Nav>
-      <ParseSettings></ParseSettings>
+      <ParseSettings parseStateHandler={handleParseState} />
       <NFTTraitsList></NFTTraitsList>
-      {allTraits.length > ELEMENTS_PER_PAGE && <Pagination></Pagination>}
+      {allTraits.length > ELEMENTS_PER_PAGE && (
+        <Pagination traitsCount={allTraits.length} />
+      )}
     </>
   );
 };

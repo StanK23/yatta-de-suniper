@@ -59,7 +59,7 @@ class IPFSService {
     return gateways[ipfsIndex]!;
   }
 
-  async traitsList(CID: string, supply: number) {
+  async traitsList(CID: string, supply: number, contractAddress: string) {
     let traitsCollection: Trait[] = [];
 
     // create an array with initial NFT IDs to parse
@@ -68,6 +68,7 @@ class IPFSService {
     let resultMetadata = await this.recursiveParseMetadata(
       CID,
       nftIDs,
+      contractAddress,
       traitsCollection
     );
 
@@ -76,12 +77,17 @@ class IPFSService {
     );
 
     if (collection == undefined)
-      this.traitsCollection.push({ CID: CID, traits: resultMetadata });
+      this.traitsCollection.push({
+        CID: CID,
+        contractAddress: contractAddress,
+        traits: resultMetadata,
+      });
   }
 
   async recursiveParseMetadata(
     CID: string,
     nftIDs: number[],
+    contractAddress: string,
     currentTraitsCollection: Trait[]
   ): Promise<Trait[]> {
     // Create promises array
@@ -97,7 +103,11 @@ class IPFSService {
         .then((json) => {
           let metadata: Metadata = json as unknown as Metadata;
 
-          let nftDetails: NFTDetails = this.getNFTDetails(metadata, nftID);
+          let nftDetails: NFTDetails = this.getNFTDetails(
+            metadata,
+            nftID,
+            contractAddress
+          );
 
           for (const trait of metadata.attributes) {
             currentTraitsCollection = this.incrementTrait(
@@ -123,6 +133,7 @@ class IPFSService {
       return this.recursiveParseMetadata(
         CID,
         errorIDs,
+        contractAddress,
         currentTraitsCollection
       );
     } else {
@@ -174,15 +185,22 @@ class IPFSService {
     return collectionArray;
   }
 
-  getNFTDetails(metadata: Metadata, nftID: number): NFTDetails {
+  getNFTDetails(
+    metadata: Metadata,
+    nftID: number,
+    contractAddress: string
+  ): NFTDetails {
     let CID = metadata.image.split("/")[2] ?? "0";
     let gatewayURL = IPFSService.IPFS_HOSTS(CID, nftID, ".png")[0] ?? "";
+    let itemOpenSeaURL =
+      "https://opensea.io/assets/ethereum/" + contractAddress + "/" + nftID;
 
     let nftDetails: NFTDetails = {
       id: nftID,
       title: metadata.name,
       CID: CID,
       gatewayURL: gatewayURL,
+      openSeaURL: itemOpenSeaURL,
     };
 
     return nftDetails;
@@ -194,6 +212,7 @@ export type NFTDetails = {
   title: string;
   CID: string;
   gatewayURL: string;
+  openSeaURL: string;
 };
 
 export type Trait = {
@@ -205,6 +224,7 @@ export type Trait = {
 
 export type TraitsCollection = {
   CID: string;
+  contractAddress: string;
   traits: Trait[];
 };
 

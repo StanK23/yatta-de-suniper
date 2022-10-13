@@ -2,9 +2,13 @@ import React from "react";
 import { trpc } from "../../utils/trpc";
 
 const inputClassSet =
-  "mr-3 block w-4/5 rounded-md border border-slate-300 bg-white py-2 pl-3 pr-3 text-slate-900 shadow-sm placeholder:italic placeholder:text-slate-400 focus:border-orange-400 focus:outline-none focus:ring-1 sm:text-sm";
+  "block rounded-md border border-slate-300 bg-white py-1 pl-2 pr-1 text-slate-900 shadow-sm placeholder:italic placeholder:text-slate-400 focus:border-orange-400 focus:outline-none focus:ring-1 sm:text-sm";
 
-const ParseSettings = () => {
+const ParseSettings = ({
+  parseStateHandler,
+}: {
+  parseStateHandler: (parsedCID: string, parsedSupply: number) => void;
+}) => {
   // Reload UI when traits list received
   const utils = trpc.useContext();
   const parseMetadata = trpc.ipfs.parseMetadata.useMutation({
@@ -14,34 +18,59 @@ const ParseSettings = () => {
   });
 
   // Parse Metadata mutation
-  const mutateMetadata = () =>
+  const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    let CID = event.target.CID.value;
+    let supply = parseInt(event.target.supply.value);
+
     parseMetadata.mutate({
-      CID: "bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe",
-      supply: 500,
+      CID: CID,
+      supply: supply,
+      contractAddress: event.target.contractAddress.value,
     });
 
+    parseStateHandler(CID, supply);
+  };
+
   return (
-    <div className="m-2 flex justify-between rounded-lg bg-slate-700 p-3">
-      <input
-        className={inputClassSet}
-        placeholder="Paste IPFS ID"
-        type="text"
-        name="ipfs"
-      />
-      <input
-        className={inputClassSet + " w-28"}
-        placeholder="Supply"
-        min={1}
-        type="number"
-        name="supply"
-      />
-      <button
-        onClick={mutateMetadata}
-        className="w-1/5 rounded-md bg-amber-600 py-1 px-2 text-sm"
-      >
-        Parse
-      </button>
-    </div>
+    <form action="/" onSubmit={(event) => handleForm(event)}>
+      <div className="m-2 flex flex-col justify-between gap-2 rounded-lg bg-slate-700 p-2 sm:flex-row">
+        <div className="flex flex-grow justify-between gap-1 rounded-lg bg-slate-700">
+          <input
+            className={inputClassSet + " flex-grow invalid:border-red-600"}
+            placeholder="0x..."
+            type="text"
+            name="contractAddress"
+            value="0xcca8050215e585e2a223c6ea9d1d1f9b30beaf3e"
+            required
+          />
+          <input
+            className={inputClassSet + " w-28 invalid:border-red-600"}
+            placeholder="IPFS ID"
+            type="text"
+            name="CID"
+            value="bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe"
+            required
+          />
+          <input
+            className={inputClassSet + " w-20 invalid:border-red-600"}
+            placeholder="Supply"
+            min={1}
+            type="number"
+            name="supply"
+            value={500}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full rounded-md bg-amber-600 py-1 px-2 text-sm sm:w-20"
+        >
+          Parse
+        </button>
+      </div>
+    </form>
   );
 };
 

@@ -4,9 +4,19 @@ import IPFSClient from "../../../utils/services/IPFSService";
 
 export const ipfsRouter = t.router({
   parseMetadata: t.procedure
-    .input(z.object({ CID: z.string(), supply: z.number() }))
+    .input(
+      z.object({
+        CID: z.string(),
+        supply: z.number(),
+        contractAddress: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
-      return IPFSClient.traitsList(input.CID, input.supply);
+      return IPFSClient.traitsList(
+        input.CID,
+        input.supply,
+        input.contractAddress
+      );
     }),
   getTraits: t.procedure.input(z.string()).query((input) => {
     return (
