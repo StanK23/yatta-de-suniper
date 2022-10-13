@@ -7,7 +7,7 @@ import NFTTraitsList from "../components/NFTAttributesList/NFTTraitsList";
 import Pagination from "../components/NFTAttributesList/Pagination";
 import ParseSettings from "../components/ParseSettings/ParseSettings";
 import { Trait } from "../utils/services/IPFSService";
-import { ELEMENTS_PER_PAGE } from "../utils/Settings";
+import { ELEMENTS_PER_PAGE } from "../utils/app-settings";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
@@ -31,7 +31,7 @@ const Home: NextPage = () => {
       </Head>
       <Nav></Nav>
       <ParseSettings parseStateHandler={handleParseState} />
-      <NFTTraitsList></NFTTraitsList>
+      <NFTTraitsList CID={CID}></NFTTraitsList>
       {allTraits.length > ELEMENTS_PER_PAGE && (
         <Pagination traitsCount={allTraits.length} />
       )}

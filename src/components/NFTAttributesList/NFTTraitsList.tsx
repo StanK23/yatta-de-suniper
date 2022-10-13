@@ -3,15 +3,13 @@ import { trpc } from "../../utils/trpc";
 import { Trait } from "../../utils/services/IPFSService";
 import TraitView from "./TraitView";
 import { useRouter } from "next/router";
-import { ELEMENTS_PER_PAGE } from "../../utils/Settings";
+import { ELEMENTS_PER_PAGE } from "../../utils/app-settings";
 
-const NFTTraitsList = () => {
+const NFTTraitsList = ({ CID }: { CID: string }) => {
   let router = useRouter();
   const [page, setPage] = useState(1);
 
-  const allTraitsQuery = trpc.ipfs.getTraits.useQuery(
-    "bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe"
-  );
+  const allTraitsQuery = trpc.ipfs.getTraits.useQuery(CID);
 
   let startIndex = (page - 1) * ELEMENTS_PER_PAGE;
   let endIndex = page * ELEMENTS_PER_PAGE;

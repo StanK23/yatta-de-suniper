@@ -42,7 +42,6 @@ const ParseSettings = ({
             placeholder="0x..."
             type="text"
             name="contractAddress"
-            value="0xcca8050215e585e2a223c6ea9d1d1f9b30beaf3e"
             required
           />
           <input
@@ -50,7 +49,6 @@ const ParseSettings = ({
             placeholder="IPFS ID"
             type="text"
             name="CID"
-            value="bafybeievpwedrt7soo6nbgkdttmjjmpkcsjkzpyaz4zox74fr45blo5boe"
             required
           />
           <input
@@ -59,7 +57,6 @@ const ParseSettings = ({
             min={1}
             type="number"
             name="supply"
-            value={500}
             required
           />
         </div>

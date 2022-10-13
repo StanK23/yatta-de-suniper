@@ -1,3 +1,5 @@
+import { hasUpperCase } from "../helpers";
+
 class IPFSService {
   // Singleton
   static myInstance: any = null;
@@ -11,24 +13,31 @@ class IPFSService {
 
   //   client: IPFS;
   static IPFS_HOSTS(CID: string, nftID: number, ext: string = ""): string[] {
+    let isHasUpperCase = hasUpperCase(CID);
+
+    if (isHasUpperCase || ext == ".png") {
+      return [
+        `https://gateway.ipfs.io/ipfs/${CID}/${nftID}${ext}`,
+        // `https://cloudflare-ipfs.com/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.fleek.co/ipfs/${CID}/${nftID}${ext}`,
+        // `https://gateway.pinata.cloud/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.io/ipfs/${CID}/${nftID}${ext}`,
+        // `https://jorropo.net/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.eth.aragon.network/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipns.co/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.best-practice.se/ipfs/${CID}/${nftID}${ext}`,
+        // `https://w3s.link/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.litnet.work/ipfs/${CID}/${nftID}${ext}`,
+        // `https://ipfs.runfission.com/ipfs/${CID}/${nftID}${ext}`,
+      ];
+    }
+
     return [
-      `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}${ext}`,
+      `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}`,
       // `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
       // `https://${CID}.ipfs.dweb.link/${nftID}`,
       // `https://${CID}.ipfs.nftstorage.link/${nftID}`,
       // `https://${CID}.ipfs.4everland.io/${nftID}`,
-      // `https://gateway.ipfs.io/ipfs/${CID}/${nftID}`,
-      // `https://cloudflare-ipfs.com/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.fleek.co/ipfs/${CID}/${nftID}`,
-      // `https://gateway.pinata.cloud/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.io/ipfs/${CID}/${nftID}`,
-      // `https://jorropo.net/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.eth.aragon.network/ipfs/${CID}/${nftID}`,
-      // `https://ipns.co/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.best-practice.se/ipfs/${CID}/${nftID}`,
-      // `https://w3s.link/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.litnet.work/ipfs/${CID}/${nftID}`,
-      // `https://ipfs.runfission.com/ipfs/${CID}/${nftID}`,
     ];
   }
 
@@ -50,7 +59,7 @@ class IPFSService {
 
   // Choose ipfs gateway to use
   gatewayURL(CID: string, nftID: number, nftIDs: number[]): string {
-    let gateways = IPFSService.IPFS_HOSTS(CID, nftID);
+    let gateways = IPFSService.IPFS_HOSTS(CID, nftID, ".json");
 
     const parsePerIPFS = Math.floor(nftIDs.length / gateways.length) + 1;
     let index = nftIDs.indexOf(nftID);
@@ -119,8 +128,8 @@ class IPFSService {
           }
         })
         .catch((error) => {
-          // console.log(error);
-          errorIDs.push(nftID);
+          // If NFT metadata not found, dont retry
+          if (error.type != "invalid-json") errorIDs.push(nftID);
         });
 
       collectionPromises.push(metadataPromise);
@@ -138,6 +147,9 @@ class IPFSService {
       );
     } else {
       console.log("READY");
+
+      // console.log(currentTraitsCollection);
+
       return (
         currentTraitsCollection
           // order traits array by type
