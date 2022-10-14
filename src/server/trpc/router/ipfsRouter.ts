@@ -19,10 +19,10 @@ export const ipfsRouter = t.router({
       );
     }),
   getTraits: t.procedure.input(z.string()).query((input) => {
-    return (
-      IPFSClient.traitsCollections.find(
-        (collection) => collection.CID == input.input
-      ) ?? { CID: input.input, traits: [] }
-    );
+    let collection = IPFSClient.traitsCollections.find(
+      (collection) => collection.CID == input.input
+    ) ?? { CID: input.input, contractAddress: "", nftIDs: [], traits: [] };
+
+    return IPFSClient.raresOrderCollection(collection);
   }),
 });

@@ -18,6 +18,7 @@ class IPFSService {
     if (isHasUpperCase || ext == ".png") {
       return [
         `https://gateway.ipfs.io/ipfs/${CID}/${nftID}${ext}`,
+        // `https://gateway.ipfs.io/ipfs/${CID}/${nftID}${ext}`,
         // `https://cloudflare-ipfs.com/ipfs/${CID}/${nftID}${ext}`,
         // `https://ipfs.fleek.co/ipfs/${CID}/${nftID}${ext}`,
         // `https://gateway.pinata.cloud/ipfs/${CID}/${nftID}${ext}`,
@@ -33,10 +34,10 @@ class IPFSService {
     } else {
       return [
         `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}`,
-        `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
-        `https://${CID}.ipfs.dweb.link/${nftID}`,
-        `https://${CID}.ipfs.nftstorage.link/${nftID}`,
-        `https://${CID}.ipfs.4everland.io/${nftID}`,
+        // `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
+        // `https://${CID}.ipfs.dweb.link/${nftID}`,
+        // `https://${CID}.ipfs.nftstorage.link/${nftID}`,
+        // `https://${CID}.ipfs.4everland.io/${nftID}`,
       ];
     }
   }
@@ -163,23 +164,26 @@ class IPFSService {
     } else {
       console.log("READY");
 
-      // Show rarest traits first
-      collection.traits = collection.traits
-        // order traits array by type
-        .sort((trait1: Trait, trait2: Trait) =>
-          trait1.title > trait2.title ? 1 : -1
-        )
-        // order traits array by type
-        .sort((trait1: Trait, trait2: Trait) =>
-          trait1.type > trait2.type ? 1 : -1
-        )
-        // order traits by rarity
-        .sort((trait1: Trait, trait2: Trait) =>
-          trait1.count >= trait2.count ? 1 : -1
-        );
-
       return collection;
     }
+  }
+
+  raresOrderCollection(collection: TraitsCollection): TraitsCollection {
+    collection.traits = collection.traits
+      // order traits array by type
+      .sort((trait1: Trait, trait2: Trait) =>
+        trait1.title > trait2.title ? 1 : -1
+      )
+      // order traits array by type
+      .sort((trait1: Trait, trait2: Trait) =>
+        trait1.type > trait2.type ? 1 : -1
+      )
+      // order traits by rarity
+      .sort((trait1: Trait, trait2: Trait) =>
+        trait1.count >= trait2.count ? 1 : -1
+      );
+
+    return collection;
   }
 
   incrementTrait(
