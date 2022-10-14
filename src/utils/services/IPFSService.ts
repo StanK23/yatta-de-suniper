@@ -12,7 +12,7 @@ class IPFSService {
   }
 
   //   client: IPFS;
-  static IPFS_HOSTS(CID: string, nftID: number, ext: string = ""): string[] {
+  static IPFS_HOSTS(CID: string, nftID: string, ext: string = ""): string[] {
     let isHasUpperCase = hasUpperCase(CID);
 
     if (isHasUpperCase || ext == ".png") {
@@ -21,7 +21,7 @@ class IPFSService {
         // `https://cloudflare-ipfs.com/ipfs/${CID}/${nftID}${ext}`,
         // `https://ipfs.fleek.co/ipfs/${CID}/${nftID}${ext}`,
         // `https://gateway.pinata.cloud/ipfs/${CID}/${nftID}${ext}`,
-        // `https://ipfs.io/ipfs/${CID}/${nftID}${ext}`,
+        `https://ipfs.io/ipfs/${CID}/${nftID}${ext}`,
         // `https://jorropo.net/ipfs/${CID}/${nftID}${ext}`,
         // `https://ipfs.eth.aragon.network/ipfs/${CID}/${nftID}${ext}`,
         // `https://ipns.co/ipfs/${CID}/${nftID}${ext}`,
@@ -30,19 +30,19 @@ class IPFSService {
         // `https://ipfs.litnet.work/ipfs/${CID}/${nftID}${ext}`,
         // `https://ipfs.runfission.com/ipfs/${CID}/${nftID}${ext}`,
       ];
+    } else {
+      return [
+        `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}`,
+        `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
+        `https://${CID}.ipfs.dweb.link/${nftID}`,
+        `https://${CID}.ipfs.nftstorage.link/${nftID}`,
+        `https://${CID}.ipfs.4everland.io/${nftID}`,
+      ];
     }
-
-    return [
-      `https://${CID}.ipfs.ipfs-gateway.cloud/${nftID}`,
-      // `https://${CID}.ipfs.cf-ipfs.com/${nftID}`,
-      // `https://${CID}.ipfs.dweb.link/${nftID}`,
-      // `https://${CID}.ipfs.nftstorage.link/${nftID}`,
-      // `https://${CID}.ipfs.4everland.io/${nftID}`,
-    ];
   }
 
   // Properties
-  traitsCollection: TraitsCollection[] = [];
+  traitsCollections: TraitsCollection[] = [];
 
   constructor() {}
 
@@ -59,7 +59,7 @@ class IPFSService {
 
   // Choose ipfs gateway to use
   gatewayURL(CID: string, nftID: number, nftIDs: number[]): string {
-    let gateways = IPFSService.IPFS_HOSTS(CID, nftID, ".json");
+    let gateways = IPFSService.IPFS_HOSTS(CID, nftID.toString(), ".json");
 
     const parsePerIPFS = Math.floor(nftIDs.length / gateways.length) + 1;
     let index = nftIDs.indexOf(nftID);
@@ -68,37 +68,36 @@ class IPFSService {
     return gateways[ipfsIndex]!;
   }
 
+  // Mutation will run this method
+  // This should fill current collections with parsed traits
   async traitsList(CID: string, supply: number, contractAddress: string) {
-    let traitsCollection: Trait[] = [];
-
     // create an array with initial NFT IDs to parse
     const nftIDs = new Array(supply).fill(null).map((_, i) => i);
 
-    let resultMetadata = await this.recursiveParseMetadata(
-      CID,
-      nftIDs,
-      contractAddress,
-      traitsCollection
-    );
-
-    let collection = this.traitsCollection.find(
+    let collectionByCID = this.traitsCollections.find(
       (collection) => collection.CID == CID
     );
-
-    if (collection == undefined)
-      this.traitsCollection.push({
+    if (collectionByCID == undefined) {
+      // Find collection or create new
+      collectionByCID = {
         CID: CID,
         contractAddress: contractAddress,
-        traits: resultMetadata,
-      });
+        nftIDs: [],
+        traits: [],
+      };
+
+      this.traitsCollections.push(collectionByCID);
+    }
+
+    // Fill collection with recursive fetched data
+    await this.recursiveParseMetadata(collectionByCID, nftIDs);
+    console.log("Parsed NFTs: ", collectionByCID.nftIDs.length);
   }
 
   async recursiveParseMetadata(
-    CID: string,
-    nftIDs: number[],
-    contractAddress: string,
-    currentTraitsCollection: Trait[]
-  ): Promise<Trait[]> {
+    collection: TraitsCollection,
+    nftIDs: number[]
+  ): Promise<TraitsCollection> {
     // Create promises array
     let collectionPromises: Promise<JSON>[] = [];
 
@@ -107,60 +106,79 @@ class IPFSService {
 
     // Main parse of metadata
     nftIDs.forEach((nftID) => {
-      let metadataPromise = this.getNFTMetadataByID(CID, nftID, nftIDs);
-      metadataPromise
-        .then((json) => {
-          let metadata: Metadata = json as unknown as Metadata;
+      // Find already parsed NFT in current cycle
+      // Parse only of no NFT yet
+      let nftInDB = this.findNFT(collection, nftID);
+      if (nftInDB == undefined) {
+        let metadataPromise = this.getNFTMetadataByID(
+          collection.CID,
+          nftID,
+          nftIDs
+        );
 
-          let nftDetails: NFTDetails = this.getNFTDetails(
-            metadata,
-            nftID,
-            contractAddress
-          );
-
-          for (const trait of metadata.attributes) {
-            currentTraitsCollection = this.incrementTrait(
-              currentTraitsCollection,
-              trait.trait_type,
-              trait.value,
-              nftDetails
+        metadataPromise
+          .then((json) => {
+            // Filling NFT details from Metadata
+            let metadata: Metadata = json as unknown as Metadata;
+            let nftDetails: NFTDetails = this.getNFTDetails(
+              metadata,
+              nftID,
+              collection.contractAddress
             );
-          }
-        })
-        .catch((error) => {
-          // If NFT metadata not found, dont retry
-          if (error.type != "invalid-json") errorIDs.push(nftID);
-        });
 
-      collectionPromises.push(metadataPromise);
+            // Add or increment trait in collection
+            for (const trait of metadata.attributes) {
+              collection.traits = this.incrementTrait(
+                collection.traits,
+                trait.trait_type,
+                trait.value,
+                nftDetails
+              );
+            }
+
+            // Save NFT ID in successfully parsed IDs array to not parse it again
+            collection.nftIDs.push(nftID);
+            // console.log("NFT ID Length:", collection.nftIDs.length);
+          })
+          .catch((error) => {
+            // Retry only if NFT metadata actually existed on ipfs
+            if (error.type != "invalid-json") {
+              errorIDs.push(nftID);
+            } else {
+              console.log("Missed forever id: ", nftID);
+            }
+          });
+
+        collectionPromises.push(metadataPromise);
+      }
     });
 
+    // Wait for all metadata
     await Promise.allSettled(collectionPromises);
 
+    // Retry failed parses
     if (errorIDs.length > 0) {
       console.log(errorIDs);
-      return this.recursiveParseMetadata(
-        CID,
-        errorIDs,
-        contractAddress,
-        currentTraitsCollection
-      );
+      return this.recursiveParseMetadata(collection, errorIDs);
     } else {
       console.log("READY");
 
-      // console.log(currentTraitsCollection);
+      // Show rarest traits first
+      collection.traits = collection.traits
+        // order traits array by type
+        .sort((trait1: Trait, trait2: Trait) =>
+          trait1.title > trait2.title ? 1 : -1
+        )
+        // order traits array by type
+        .sort((trait1: Trait, trait2: Trait) =>
+          trait1.type > trait2.type ? 1 : -1
+        )
+        // order traits by rarity
+        .sort((trait1: Trait, trait2: Trait) =>
+          trait1.count >= trait2.count ? 1 : -1
+        );
 
-      return (
-        currentTraitsCollection
-          // order traits array by type
-          .sort((trait1: Trait, trait2: Trait) =>
-            trait1.type > trait2.type ? 1 : -1
-          )
-          // order traits by rarity
-          .sort((trait1: Trait, trait2: Trait) =>
-            trait1.count >= trait2.count ? 1 : -1
-          )
-      );
+      return collection;
     }
   }
 
@@ -197,13 +215,23 @@ class IPFSService {
     return collectionArray;
   }
 
+  findNFT(collection: TraitsCollection, nftID: number) {
+    let nftInDB = collection.nftIDs.find((id) => id == nftID);
+    return nftInDB;
+  }
+
   getNFTDetails(
     metadata: Metadata,
     nftID: number,
     contractAddress: string
   ): NFTDetails {
-    let CID = metadata.image.split("/")[2] ?? "0";
-    let gatewayURL = IPFSService.IPFS_HOSTS(CID, nftID, ".png")[0] ?? "";
+    let imageIPFSStringArray = metadata.image.split("/");
+
+    let CID = imageIPFSStringArray[2] ?? "0";
+    let imageID = imageIPFSStringArray[3] ?? "0";
+
+    let gatewayURL = IPFSService.IPFS_HOSTS(CID, imageID)[0] ?? "";
+
     let itemOpenSeaURL =
       "https://opensea.io/assets/ethereum/" + contractAddress + "/" + nftID;
 
@@ -237,6 +265,7 @@ export type Trait = {
 export type TraitsCollection = {
   CID: string;
   contractAddress: string;
+  nftIDs: number[];
   traits: Trait[];
 };
 

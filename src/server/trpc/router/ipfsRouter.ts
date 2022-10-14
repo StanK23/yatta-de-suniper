@@ -20,7 +20,7 @@ export const ipfsRouter = t.router({
     }),
   getTraits: t.procedure.input(z.string()).query((input) => {
     return (
-      IPFSClient.traitsCollection.find(
+      IPFSClient.traitsCollections.find(
         (collection) => collection.CID == input.input
       ) ?? { CID: input.input, traits: [] }
     );

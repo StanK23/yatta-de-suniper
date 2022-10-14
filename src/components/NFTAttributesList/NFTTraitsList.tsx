@@ -25,7 +25,6 @@ const NFTTraitsList = ({ CID }: { CID: string }) => {
   if (allTraitsQuery.isLoading) return <div> Loading... </div>;
 
   let paginatedTraits = allTraits.slice(startIndex, endIndex);
-  console.log(paginatedTraits);
 
   return (
     <div className="m-2 justify-between self-center rounded-lg bg-slate-700 p-2">
