@@ -1,6 +1,6 @@
 import { t } from "../trpc";
 import { z } from "zod";
-import IPFSClient from "../../../utils/services/IPFSService";
+import NFTsService from "../../../utils/services/IPFSService";
 
 export const ipfsRouter = t.router({
   parseMetadata: t.procedure
@@ -12,17 +12,23 @@ export const ipfsRouter = t.router({
       })
     )
     .mutation(async ({ input }) => {
-      return IPFSClient.traitsList(
+      return NFTsService.traitsList(
         input.CID,
         input.supply,
         input.contractAddress
       );
     }),
   getTraits: t.procedure.input(z.string()).query((input) => {
-    let collection = IPFSClient.traitsCollections.find(
+    let collection = NFTsService.traitsCollections.find(
       (collection) => collection.CID == input.input
-    ) ?? { CID: input.input, contractAddress: "", nftIDs: [], traits: [] };
+    ) ?? { CID: input.input, contractAddress: "", nfts: [], traits: [] };
 
-    return IPFSClient.raresOrderCollection(collection);
+    return NFTsService.raresOrderCollection(collection);
+  }),
+  cancelParse: t.procedure.mutation(() => {
+    NFTsService.nftMetadataAbortController.abort();
+  }),
+  resetAbortController: t.procedure.mutation(() => {
+    NFTsService.resetAbortController();
   }),
 });

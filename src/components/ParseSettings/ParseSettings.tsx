@@ -12,13 +12,19 @@ const ParseSettings = ({
 }) => {
   // Reload UI when traits list received
   const utils = trpc.useContext();
+
+  const resetAbortController = trpc.ipfs.resetAbortController.useMutation();
   const parseMetadata = trpc.ipfs.parseMetadata.useMutation({
     onSuccess: () => {
       utils.ipfs.getTraits.invalidate();
     },
   });
-
-  parseMetadata.reset;
+  const cancelParse = trpc.ipfs.cancelParse.useMutation({
+    onSuccess: () => {
+      utils.ipfs.getTraits.invalidate();
+      resetAbortController.mutate();
+    },
+  });
 
   // Parse Metadata mutation
   const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,18 +51,20 @@ const ParseSettings = ({
             placeholder="0x..."
             type="text"
             name="contractAddress"
-            value={"0x209e639a0ec166ac7a1a4ba41968fa967db30221"}
+            // value={"0x633eddaa0595d37a427ce8c9e3a77a8bdcdfd9c5"}
             required
-            disabled={parseMetadata.isLoading}
+            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
           />
           <input
             className={inputClassSet + " w-28 flex-grow invalid:border-red-600"}
             placeholder="IPFS ID"
             type="text"
             name="CID"
-            value={"Qmf6XY7fBnd8yQcBmC1nRE6Wvnm87dwmRixStwvf7QNVWx"}
+            // value={
+            //   "bafybeif2ebvszki3gzidru2n523ugluponxn5yba6eyjfmcwat4gyrsksq"
+            // }
             required
-            disabled={parseMetadata.isLoading}
+            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
           />
           <input
             className={inputClassSet + " w-20 invalid:border-red-600"}
@@ -64,15 +72,16 @@ const ParseSettings = ({
             min={1}
             type="number"
             name="supply"
+            // value={1000}
             required
-            disabled={parseMetadata.isLoading}
+            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
           />
         </div>
 
         <div className="flex flex-row justify-between">
           <button
             type="submit"
-            disabled={parseMetadata.isLoading}
+            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
             className=" h-8 w-full  rounded-md bg-amber-600 py-1 px-2 text-center text-sm disabled:bg-gray-600 sm:w-20"
           >
             {parseMetadata.isLoading ? (
@@ -89,8 +98,11 @@ const ParseSettings = ({
               "PARSE"
             )}
           </button>
-          {parseMetadata.isLoading && (
-            <button className="ml-1 h-8 w-8 rounded-md bg-red-600 py-1 px-2 text-center text-sm sm:w-20">
+          {(parseMetadata.isLoading || resetAbortController.isLoading) && (
+            <button
+              onClick={() => cancelParse.mutate()}
+              className="ml-1 h-8 w-8 rounded-md bg-red-600 py-1 px-2 text-center text-sm sm:w-20"
+            >
               X
             </button>
           )}
