@@ -1,8 +1,12 @@
 import { CHAIN_TYPE, CHAIN_ID } from "./../app-settings";
 import { providers, Contract } from "ethers";
 import { env } from "../../env/server.mjs";
-import ERC721_ABI from "../../server/abi/ERC721.json";
 import { getAddress } from "ethers/lib/utils";
+
+const ERC721_ABI = [
+  "function tokenURI(uint256 tokenId) public view returns (string)",
+  "function totalSupply() external view returns (uint256)",
+];
 
 class EVMService {
   // Singconston

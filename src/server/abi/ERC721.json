@@ -1,4 +1,0 @@
-[
-  "function tokenURI(uint256 tokenId) public view returns (string)",
-  "function totalSupply() external view returns (uint256)"
-]
