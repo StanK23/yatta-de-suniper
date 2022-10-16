@@ -10,8 +10,8 @@ import { ELEMENTS_PER_PAGE } from "../utils/app-settings";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
-  let [CID, setCID] = useState("");
-  let [totalSupply, setTotalSupply] = useState(0);
+  const [CID, setCID] = useState("");
+  const [totalSupply, setTotalSupply] = useState(0);
 
   const handleParseState = (parsedCID: string, parsedTotalSupply: number) => {
     setCID(parsedCID);
@@ -19,7 +19,7 @@ const Home: NextPage = () => {
   };
 
   const allTraitsQuery = trpc.ipfs.getTraits.useQuery(CID);
-  let allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
+  const allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
 
   return (
     <>

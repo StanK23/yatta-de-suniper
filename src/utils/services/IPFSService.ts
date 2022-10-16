@@ -18,8 +18,6 @@ class NFTsServiceClass {
   traitsCollections: TraitsCollection[] = [];
   nftMetadataAbortController = new AbortController();
 
-  constructor() {}
-
   // Mutation will run this method
   // This should fill current collections with parsed traits
   async traitsList(
@@ -59,10 +57,10 @@ class NFTsServiceClass {
     ext: string
   ): Promise<TraitsCollection> {
     // Create an array for a failed fetches to try again in the next cycle
-    let errorIDs: number[] = [];
+    const errorIDs: number[] = [];
 
     // Divide requests to chunks
-    let chunksForRequests = spliceIntoChunks(nftIDs, NFTS_PER_CHUNK);
+    const chunksForRequests = spliceIntoChunks(nftIDs, NFTS_PER_CHUNK);
 
     for (
       let chunkIndex = 0;
@@ -72,17 +70,17 @@ class NFTsServiceClass {
       const chunk = chunksForRequests[chunkIndex];
 
       // Create promises array
-      let chunkPromises: any = [];
+      const chunkPromises: any = [];
       // Main parse of metadata
       chunk?.forEach((nftID) => {
         // Find already parsed NFT in current cycle
         // Parse only of no NFT yet
-        let nftInDB = this.findNFT(collection, nftID);
+        const nftInDB = this.findNFT(collection, nftID);
 
         if (nftInDB == undefined || !nftInDB.persist) {
           // console.log(nftInDB);
           // Make a get request to ipfs
-          let metadataPromise = IPFSAPI.getCollectionNFT(
+          const metadataPromise = IPFSAPI.getCollectionNFT(
             collection.CID,
             nftID,
             chunk,
@@ -93,11 +91,11 @@ class NFTsServiceClass {
           metadataPromise
             .then((response) => {
               // Filling NFT details from Metadata
-              let metadata: NFTMetadata = response.data;
+              const metadata: NFTMetadata = response.data;
               this.onSuccessMetadataParse(metadata, nftID, collection);
             })
             .catch((error) => {
-              let errorNFTID = this.onFailedMetadataParse(
+              const errorNFTID = this.onFailedMetadataParse(
                 error,
                 nftID,
                 collection
@@ -128,7 +126,7 @@ class NFTsServiceClass {
     nftID: number,
     collection: TraitsCollection
   ) {
-    let nftDetails: NFTDetails | null = this.getNFTDetails(
+    const nftDetails: NFTDetails | null = this.getNFTDetails(
       metadata,
       nftID,
       collection.contractAddress
@@ -204,16 +202,16 @@ class NFTsServiceClass {
     nftDetails: NFTDetails
   ): Trait[] {
     // Find already existed trait
-    let trait = collectionArray.find((trait) => {
-      let isTypeSame = trait.type == type;
-      let isTitleSame = trait.title == title;
+    const trait = collectionArray.find((trait) => {
+      const isTypeSame = trait.type == type;
+      const isTitleSame = trait.title == title;
 
       return isTitleSame && isTypeSame;
     });
 
     // Create new trait and return it
     if (trait == undefined) {
-      let newTrait: Trait = {
+      const newTrait: Trait = {
         type: type,
         title: title,
         count: 1,
@@ -231,7 +229,7 @@ class NFTsServiceClass {
   }
 
   findNFT(collection: TraitsCollection, nftID: number) {
-    let nftInDB = collection.nfts[nftID];
+    const nftInDB = collection.nfts[nftID];
     return nftInDB;
   }
 
@@ -242,9 +240,9 @@ class NFTsServiceClass {
   ): NFTDetails | null {
     if (metadata == null) return metadata;
 
-    let imageIPFSStringArray = metadata.image.split("/");
+    const imageIPFSStringArray = metadata.image.split("/");
 
-    let chunkCount = imageIPFSStringArray.length;
+    const chunkCount = imageIPFSStringArray.length;
     let CID = imageIPFSStringArray[chunkCount - 2] ?? "0";
     let imageID = imageIPFSStringArray[chunkCount - 1] ?? "";
 
@@ -255,12 +253,12 @@ class NFTsServiceClass {
 
     // console.log(metadata);
 
-    let gatewayURL = `https://gateway.ipfs.io/ipfs/${CID}/${imageID}`;
+    const gatewayURL = `https://gateway.ipfs.io/ipfs/${CID}/${imageID}`;
 
-    let itemOpenSeaURL =
+    const itemOpenSeaURL =
       "https://opensea.io/assets/ethereum/" + contractAddress + "/" + nftID;
 
-    let nftDetails: NFTDetails = {
+    const nftDetails: NFTDetails = {
       id: nftID,
       title: metadata.name == undefined ? metadata.title : metadata.name,
       CID: CID,

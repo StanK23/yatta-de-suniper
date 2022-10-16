@@ -5,7 +5,7 @@ import ERC721_ABI from "../../server/abi/ERC721.json";
 import { getAddress } from "ethers/lib/utils";
 
 class EVMService {
-  // Singleton
+  // Singconston
   static myInstance: any = null;
 
   static instance(): EVMService {
@@ -64,24 +64,26 @@ class EVMService {
   }> {
     // Connect to NFT contract
 
-    let collectionContract = new Contract(
+    const collectionContract = new Contract(
       contractAddress,
       ERC721_ABI,
       this.provider
     );
 
     // Get IPFS URL for any item
-    let ipfsURI: string = await collectionContract.tokenURI("1");
+    const ipfsURI: string = await collectionContract.tokenURI("1");
     // Parse CID and ext
-    let ipfsStringArray = ipfsURI.split("/");
-    let chunkCount = ipfsStringArray.length;
+    const ipfsStringArray = ipfsURI.split("/");
+    const chunkCount = ipfsStringArray.length;
 
-    let CID = ipfsStringArray[chunkCount - 2] ?? "0";
-    let fileString = ipfsStringArray[chunkCount - 1] ?? "";
-    let fileFormat = fileString.split(".")[1];
+    const CID = ipfsStringArray[chunkCount - 2] ?? "0";
+    const fileString = ipfsStringArray[chunkCount - 1] ?? "";
+    const fileFormat = fileString.split(".")[1];
 
     // Get Total Supply from contract
-    let totalSupply: number = parseInt(await collectionContract.totalSupply());
+    const totalSupply: number = parseInt(
+      await collectionContract.totalSupply()
+    );
     return {
       contractAddress: getAddress(contractAddress),
       CID: CID,

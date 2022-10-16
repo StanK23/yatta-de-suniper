@@ -40,7 +40,7 @@ const ParseSettings = ({
   // Submit form with only contract address for NFT
   const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    let form: HTMLFormElement = event.target as HTMLFormElement;
+    const form: HTMLFormElement = event.target as HTMLFormElement;
     mutationGetIPFSInfoAndParse.mutate(form.contractAddress.value);
   };
 

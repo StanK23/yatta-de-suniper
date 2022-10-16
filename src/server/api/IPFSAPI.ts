@@ -9,7 +9,7 @@ export class IPFSAPI {
     ext: string,
     abortController: AbortController
   ) {
-    let url = requestURL(ipfsCID, nftID, everyNFTID, ext);
+    const url = requestURL(ipfsCID, nftID, everyNFTID, ext);
     return axios.get(url, {
       signal: abortController.signal,
     });
@@ -23,16 +23,16 @@ function requestURL(
   nftIDs: number[],
   ext: string
 ): string {
-  let gateways = ipfsHosts(ipfsCID, nftID.toString(), ext);
+  const gateways = ipfsHosts(ipfsCID, nftID.toString(), ext);
 
   const parsePerIPFS = Math.floor(nftIDs.length / gateways.length) + 1;
-  let index = nftIDs.indexOf(nftID);
+  const index = nftIDs.indexOf(nftID);
   const apiIndex: number = Math.floor(index / parsePerIPFS);
 
   return gateways[apiIndex]!;
 }
 
 // client: IPFS;
-function ipfsHosts(CID: string, nftID: string, ext: string = ""): string[] {
+function ipfsHosts(CID: string, nftID: string, ext = ""): string[] {
   return [`${env.IPFS_BASE_URL}${CID}/${nftID}${ext}`];
 }

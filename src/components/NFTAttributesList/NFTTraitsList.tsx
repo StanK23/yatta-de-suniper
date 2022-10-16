@@ -6,25 +6,25 @@ import { useRouter } from "next/router";
 import { ELEMENTS_PER_PAGE } from "../../utils/app-settings";
 
 const NFTTraitsList = ({ CID }: { CID: string }) => {
-  let router = useRouter();
+  const router = useRouter();
   const [page, setPage] = useState(1);
 
   const allTraitsQuery = trpc.ipfs.getTraits.useQuery(CID);
 
-  let startIndex = (page - 1) * ELEMENTS_PER_PAGE;
-  let endIndex = page * ELEMENTS_PER_PAGE;
+  const startIndex = (page - 1) * ELEMENTS_PER_PAGE;
+  const endIndex = page * ELEMENTS_PER_PAGE;
 
-  let routerPage = router.query["page"];
+  const routerPage = router.query["page"];
   if (routerPage != undefined && parseInt(routerPage! as string) != page) {
     console.log(routerPage);
     setPage(parseInt(routerPage! as string));
   }
 
-  let allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
+  const allTraits: Trait[] = allTraitsQuery.data?.traits ?? [];
 
   if (allTraitsQuery.isLoading) return <div> Loading... </div>;
 
-  let paginatedTraits = allTraits.slice(startIndex, endIndex);
+  const paginatedTraits = allTraits.slice(startIndex, endIndex);
 
   return (
     <div className="m-2 justify-between self-center rounded-lg bg-slate-700 p-2">
