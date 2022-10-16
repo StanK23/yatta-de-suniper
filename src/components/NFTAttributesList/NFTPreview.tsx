@@ -8,7 +8,7 @@ const NFTPreview = ({ nftDetails }: { nftDetails: NFTDetails }) => {
       <a
         href={nftDetails.openSeaURL}
         target="_blank"
-        rel="noopener"
+        rel="noreferrer"
         className="flex flex-row items-center justify-between"
       >
         <Image
