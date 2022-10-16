@@ -50,10 +50,10 @@ class EVMService {
 
   // STATES
   chain = this.CHAINS.ETH;
-  provider: providers.WebSocketProvider;
+  provider: providers.JsonRpcProvider;
 
   constructor() {
-    this.provider = new providers.WebSocketProvider(this.chain.NODE);
+    this.provider = new providers.JsonRpcProvider(this.chain.NODE);
   }
 
   async getIPFSInfo(contractAddress: string): Promise<{
