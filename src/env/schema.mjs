@@ -10,7 +10,7 @@ export const serverSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   // EVM
   ETH_NODE: z.string(),
-  IPFS_BASE_URL: z.string().url()
+  IPFS_BASE_URL: z.string()
 });
 
 /**
