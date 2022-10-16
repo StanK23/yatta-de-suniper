@@ -40,8 +40,8 @@ const ParseSettings = ({
   // Submit form with only contract address for NFT
   const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    mutationGetIPFSInfoAndParse.mutate(event.target.contractAddress.value);
+    let form: HTMLFormElement = event.target as HTMLFormElement;
+    mutationGetIPFSInfoAndParse.mutate(form.contractAddress.value);
   };
 
   return (
@@ -53,34 +53,12 @@ const ParseSettings = ({
             placeholder="0x..."
             type="text"
             name="contractAddress"
-            // value={"0x633eddaa0595d37a427ce8c9e3a77a8bdcdfd9c5"}
             required
             disabled={
               mutationGetIPFSInfoAndParse.isLoading ||
               mutationResetAbortController.isLoading
             }
           />
-          {/* <input
-            className={inputClassSet + " w-28 flex-grow invalid:border-red-600"}
-            placeholder="IPFS ID"
-            type="text"
-            name="CID"
-            // value={
-            //   "bafybeif2ebvszki3gzidru2n523ugluponxn5yba6eyjfmcwat4gyrsksq"
-            // }
-            required
-            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
-          />
-          <input
-            className={inputClassSet + " w-20 invalid:border-red-600"}
-            placeholder="Supply"
-            min={1}
-            type="number"
-            name="supply"
-            // value={1000}
-            required
-            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
-          /> */}
         </div>
 
         <div className="flex flex-row justify-between">
