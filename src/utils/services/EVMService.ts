@@ -3,11 +3,6 @@ import { providers, Contract } from "ethers";
 import { env } from "../../env/server.mjs";
 import { getAddress } from "ethers/lib/utils";
 
-const ERC721_ABI = [
-  "function tokenURI(uint256 tokenId) public view returns (string)",
-  "function totalSupply() external view returns (uint256)",
-];
-
 class EVMService {
   // Singconston
   static myInstance: any = null;
@@ -18,6 +13,11 @@ class EVMService {
     }
     return this.myInstance;
   }
+
+  ERC721_ABI = [
+    "function tokenURI(uint256 tokenId) public view returns (string)",
+    "function totalSupply() external view returns (uint256)",
+  ];
 
   CHAINS: CHAIN_TYPE = {
     [CHAIN_ID.ETH]: {
@@ -57,7 +57,7 @@ class EVMService {
   provider: providers.JsonRpcProvider;
 
   constructor() {
-    this.provider = new providers.JsonRpcProvider(this.chain.NODE);
+    this.provider = new providers.JsonRpcProvider(env.ETH_NODE);
   }
 
   async getIPFSInfo(contractAddress: string): Promise<{
@@ -70,7 +70,7 @@ class EVMService {
 
     const collectionContract = new Contract(
       contractAddress,
-      ERC721_ABI,
+      this.ERC721_ABI,
       this.provider
     );
 
