@@ -1,14 +1,15 @@
 import axios from "axios";
-import { getRandomInt, hasUpperCase } from "../../utils/helpers";
+import { hasUpperCase } from "../../utils/helpers";
 
 export class IPFSAPI {
   static getCollectionNFT(
     ipfsCID: string,
     nftID: number,
     everyNFTID: number[],
+    ext: string,
     abortController: AbortController
   ) {
-    let url = requestURL(ipfsCID, nftID, everyNFTID);
+    let url = requestURL(ipfsCID, nftID, everyNFTID, ext);
     // console.log(url);
     return axios.get(url, {
       signal: abortController.signal,
@@ -18,9 +19,14 @@ export class IPFSAPI {
 }
 
 // Choose ipfs gateway to use
-function requestURL(ipfsCID: string, nftID: number, nftIDs: number[]): string {
-  let isV2 = hasUpperCase(ipfsCID);
-  let gateways = ipfsHosts(ipfsCID, nftID.toString(), "");
+function requestURL(
+  ipfsCID: string,
+  nftID: number,
+  nftIDs: number[],
+  ext: string
+): string {
+  // let isV2 = hasUpperCase(ipfsCID);
+  let gateways = ipfsHosts(ipfsCID, nftID.toString(), ext);
 
   // let apiIndex = getRandomInt(gateways.length);
 

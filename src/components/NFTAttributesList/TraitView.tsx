@@ -18,7 +18,7 @@ const TraitView = ({ trait }: { trait: Trait }) => {
       <hr></hr>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {trait.nfts.map((nft) => (
-          <NFTPreview nftDetails={nft} />
+          <NFTPreview key={nft.CID + nft.id} nftDetails={nft} />
         ))}
       </div>
     </div>

@@ -14,3 +14,7 @@ export function spliceIntoChunks(arr: any[], chunkSize: number) {
   }
   return res;
 }
+
+export function startsWithNumber(str: string) {
+  return /^\d/.test(str);
+}

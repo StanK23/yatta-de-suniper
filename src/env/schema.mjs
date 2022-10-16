@@ -8,7 +8,15 @@ import { z } from "zod";
 export const serverSchema = z.object({
   DATABASE_URL: z.string().url(),
   NODE_ENV: z.enum(["development", "test", "production"]),
-  MORALIS_WEB3_API_KEY: z.string()
+  MORALIS_WEB3_API_KEY: z.string(),
+  // EVM
+  ETH_NODE: z.string(),
+  BSC_NODE: z.string(),
+  POLYGON_NODE: z.string(),
+  ARBITRUM_NODE: z.string(),
+  OPTIMISM_NODE: z.string(),
+  // WALLET
+  WALLET_PRIVATE_KEY: z.string(),
 });
 
 /**

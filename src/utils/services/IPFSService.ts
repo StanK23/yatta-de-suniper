@@ -1,7 +1,7 @@
 import { NFTS_PER_CHUNK } from "./../app-settings";
 import { IPFSAPI } from "../../server/api/IPFSAPI";
 import { setMaxListeners } from "events";
-import { spliceIntoChunks } from "../helpers";
+import { spliceIntoChunks, startsWithNumber } from "../helpers";
 
 class NFTsServiceClass {
   // Singleton
@@ -22,11 +22,16 @@ class NFTsServiceClass {
 
   // Mutation will run this method
   // This should fill current collections with parsed traits
-  async traitsList(CID: string, supply: number, contractAddress: string) {
+  async traitsList(
+    CID: string,
+    totalSupply: number,
+    contractAddress: string,
+    ext: string
+  ) {
     // (await this.ipfs).start();
 
     // create an array with initial NFT IDs to parse
-    const nftIDs = new Array(supply).fill(null).map((_, i) => i);
+    const nftIDs = new Array(totalSupply).fill(null).map((_, i) => i);
 
     let collectionByCID = this.traitsCollections.find(
       (collection) => collection.CID == CID
@@ -44,13 +49,14 @@ class NFTsServiceClass {
     }
 
     // Fill collection with recursive fetched data
-    await this.recursiveParseMetadata(collectionByCID, nftIDs);
+    await this.recursiveParseMetadata(collectionByCID, nftIDs, ext);
     console.log("Parsed NFTs: ", Object.keys(collectionByCID.nfts).length);
   }
 
   async recursiveParseMetadata(
     collection: TraitsCollection,
-    nftIDs: number[]
+    nftIDs: number[],
+    ext: string
   ): Promise<TraitsCollection> {
     // Create an array for a failed fetches to try again in the next cycle
     let errorIDs: number[] = [];
@@ -80,6 +86,7 @@ class NFTsServiceClass {
             collection.CID,
             nftID,
             chunk,
+            ext,
             this.nftMetadataAbortController!
           );
 
@@ -90,8 +97,7 @@ class NFTsServiceClass {
               this.onSuccessMetadataParse(metadata, nftID, collection);
             })
             .catch((error) => {
-              console.log(error);
-              let errorNFTID = this.onFailedrMetadataParse(
+              let errorNFTID = this.onFailedMetadataParse(
                 error,
                 nftID,
                 collection
@@ -110,7 +116,7 @@ class NFTsServiceClass {
     // Retry failed parses
     if (errorIDs.length > 0) {
       console.log(errorIDs);
-      return this.recursiveParseMetadata(collection, errorIDs);
+      return this.recursiveParseMetadata(collection, errorIDs, ext);
     } else {
       console.log("READY");
       return collection;
@@ -129,8 +135,17 @@ class NFTsServiceClass {
     );
 
     if (nftDetails != null) {
+      let attributes = metadata.attributes;
+      if (!Array.isArray(metadata.attributes)) {
+        attributes = [
+          {
+            trait_type: metadata.attributes,
+            value: metadata.attributes,
+          },
+        ];
+      }
       // Add or increment trait in collection
-      for (const trait of metadata.attributes) {
+      for (const trait of attributes) {
         collection.traits = this.incrementTrait(
           collection.traits,
           trait.trait_type,
@@ -145,14 +160,14 @@ class NFTsServiceClass {
     }
   }
 
-  onFailedrMetadataParse(
+  onFailedMetadataParse(
     error: any,
     nftID: number,
     collection: TraitsCollection
   ): number | undefined {
-    // console.log(error.code);
+    // console.log(error.code, error.response);
     // Retry only if NFT metadata actually existed on ipfs
-    if (error.status == 404) {
+    if (error.response != undefined && error.response.status == 404) {
       console.log("Missed forever id: ", nftID);
     } else if (error.code == "ERR_CANCELED") {
       collection.nfts[nftID] = this.createEmptyNFTDetails(
@@ -160,7 +175,6 @@ class NFTsServiceClass {
         collection.CID
       );
     } else {
-      // console.log(error.code);
       return nftID;
     }
   }
@@ -234,6 +248,13 @@ class NFTsServiceClass {
     let CID = imageIPFSStringArray[chunkCount - 2] ?? "0";
     let imageID = imageIPFSStringArray[chunkCount - 1] ?? "";
 
+    if (!startsWithNumber(imageID)) {
+      CID = imageID;
+      imageID = "";
+    }
+
+    // console.log(metadata);
+
     let gatewayURL = `https://gateway.ipfs.io/ipfs/${CID}/${imageID}`;
 
     let itemOpenSeaURL =
@@ -241,7 +262,7 @@ class NFTsServiceClass {
 
     let nftDetails: NFTDetails = {
       id: nftID,
-      title: metadata.name,
+      title: metadata.name == undefined ? metadata.title : metadata.name,
       CID: CID,
       gatewayURL: gatewayURL,
       openSeaURL: itemOpenSeaURL,
@@ -293,6 +314,7 @@ export type TraitsCollection = {
 };
 
 type NFTMetadata = {
+  title: string;
   name: string;
   description: string;
   image: string;

@@ -13,33 +13,35 @@ const ParseSettings = ({
   // Reload UI when traits list received
   const utils = trpc.useContext();
 
-  const resetAbortController = trpc.ipfs.resetAbortController.useMutation();
-  const parseMetadata = trpc.ipfs.parseMetadata.useMutation({
-    onSuccess: () => {
+  // Starting point:
+  // We need to parse ipfs info with contractAddress of collection
+  // on Success need to start parsing metadata from IPFS, then show it
+  const mutationGetIPFSInfoAndParse = trpc.evm.getIPFSInfo.useMutation({
+    onSuccess: (ipfsInfo) => {
       utils.ipfs.getTraits.invalidate();
-    },
-  });
-  const cancelParse = trpc.ipfs.cancelParse.useMutation({
-    onSuccess: () => {
-      utils.ipfs.getTraits.invalidate();
-      resetAbortController.mutate();
+      parseStateHandler(ipfsInfo.CID, ipfsInfo.totalSupply);
     },
   });
 
-  // Parse Metadata mutation
+  // Mutation for cancelling all requests immediately
+  // on Success need to reset abort controller
+  const mutationCancelParse = trpc.ipfs.cancelParse.useMutation({
+    onSuccess: () => {
+      utils.ipfs.getTraits.invalidate();
+      mutationResetAbortController.mutate();
+    },
+  });
+
+  // Mutation for resetting abort controller, to be able cancel requests again
+  // Mutation, because it's only working correct when all requests are done cancelling
+  const mutationResetAbortController =
+    trpc.ipfs.resetAbortController.useMutation();
+
+  // Submit form with only contract address for NFT
   const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    let CID = event.target.CID.value;
-    let supply = parseInt(event.target.supply.value);
-
-    parseMetadata.mutate({
-      CID: CID,
-      supply: supply,
-      contractAddress: event.target.contractAddress.value,
-    });
-
-    parseStateHandler(CID, supply);
+    mutationGetIPFSInfoAndParse.mutate(event.target.contractAddress.value);
   };
 
   return (
@@ -53,9 +55,12 @@ const ParseSettings = ({
             name="contractAddress"
             // value={"0x633eddaa0595d37a427ce8c9e3a77a8bdcdfd9c5"}
             required
-            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
+            disabled={
+              mutationGetIPFSInfoAndParse.isLoading ||
+              mutationResetAbortController.isLoading
+            }
           />
-          <input
+          {/* <input
             className={inputClassSet + " w-28 flex-grow invalid:border-red-600"}
             placeholder="IPFS ID"
             type="text"
@@ -75,16 +80,19 @@ const ParseSettings = ({
             // value={1000}
             required
             disabled={parseMetadata.isLoading || resetAbortController.isLoading}
-          />
+          /> */}
         </div>
 
         <div className="flex flex-row justify-between">
           <button
             type="submit"
-            disabled={parseMetadata.isLoading || resetAbortController.isLoading}
+            disabled={
+              mutationGetIPFSInfoAndParse.isLoading ||
+              mutationResetAbortController.isLoading
+            }
             className=" h-8 w-full  rounded-md bg-amber-600 py-1 px-2 text-center text-sm disabled:bg-gray-600 sm:w-20"
           >
-            {parseMetadata.isLoading ? (
+            {mutationGetIPFSInfoAndParse.isLoading ? (
               <div className="flex items-center justify-center">
                 <ThreeDots
                   height="24"
@@ -98,9 +106,10 @@ const ParseSettings = ({
               "PARSE"
             )}
           </button>
-          {(parseMetadata.isLoading || resetAbortController.isLoading) && (
+          {(mutationGetIPFSInfoAndParse.isLoading ||
+            mutationResetAbortController.isLoading) && (
             <button
-              onClick={() => cancelParse.mutate()}
+              onClick={() => mutationCancelParse.mutate()}
               className="ml-1 h-8 w-8 rounded-md bg-red-600 py-1 px-2 text-center text-sm sm:w-20"
             >
               X
