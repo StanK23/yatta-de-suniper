@@ -19,46 +19,38 @@ class EVMService {
     "function totalSupply() external view returns (uint256)",
   ];
 
-  CHAINS: CHAIN_TYPE = {
-    [CHAIN_ID.ETH]: {
-      ID: 1,
-      NAME: "Ethereum",
-      NODE: env.ETH_NODE,
-      SYMBOL: "ETH",
-    },
-    [CHAIN_ID.BSC]: {
-      ID: 56,
-      NAME: "Binance Smart Chain",
-      NODE: "",
-      SYMBOL: "BNB",
-    },
-    [CHAIN_ID.POLYGON]: {
-      ID: 137,
-      NAME: "Polygon",
-      NODE: "",
-      SYMBOL: "MATIC",
-    },
-    [CHAIN_ID.ARBITRUM]: {
-      ID: 42161,
-      NAME: "Arbitrum",
-      NODE: "",
-      SYMBOL: "AETH",
-    },
-    [CHAIN_ID.OPTIMISM]: {
-      ID: 10,
-      NAME: "Optimism",
-      NODE: "",
-      SYMBOL: "ETH",
-    },
-  };
-
-  // STATES
-  chain = this.CHAINS.ETH;
-  provider: providers.JsonRpcProvider;
-
-  constructor() {
-    this.provider = new providers.JsonRpcProvider(env.ETH_NODE);
-  }
+  // CHAINS: CHAIN_TYPE = {
+  //   [CHAIN_ID.ETH]: {
+  //     ID: 1,
+  //     NAME: "Ethereum",
+  //     NODE: env.ETH_NODE,
+  //     SYMBOL: "ETH",
+  //   },
+  //   [CHAIN_ID.BSC]: {
+  //     ID: 56,
+  //     NAME: "Binance Smart Chain",
+  //     NODE: "",
+  //     SYMBOL: "BNB",
+  //   },
+  //   [CHAIN_ID.POLYGON]: {
+  //     ID: 137,
+  //     NAME: "Polygon",
+  //     NODE: "",
+  //     SYMBOL: "MATIC",
+  //   },
+  //   [CHAIN_ID.ARBITRUM]: {
+  //     ID: 42161,
+  //     NAME: "Arbitrum",
+  //     NODE: "",
+  //     SYMBOL: "AETH",
+  //   },
+  //   [CHAIN_ID.OPTIMISM]: {
+  //     ID: 10,
+  //     NAME: "Optimism",
+  //     NODE: "",
+  //     SYMBOL: "ETH",
+  //   },
+  // };
 
   async getIPFSInfo(contractAddress: string): Promise<{
     contractAddress: string;
@@ -66,12 +58,13 @@ class EVMService {
     ext: string;
     totalSupply: number;
   }> {
+    let provider = new providers.JsonRpcProvider(env.ETH_NODE);
     // Connect to NFT contract
 
     const collectionContract = new Contract(
       contractAddress,
       this.ERC721_ABI,
-      this.provider
+      provider
     );
 
     // Get IPFS URL for any item
