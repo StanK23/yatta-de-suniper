@@ -58,7 +58,7 @@ class EVMService {
     ext: string;
     totalSupply: number;
   }> {
-    let provider = new providers.JsonRpcProvider(env.ETH_NODE);
+    const provider = new providers.JsonRpcProvider(env.ETH_NODE);
     // Connect to NFT contract
 
     const collectionContract = new Contract(
