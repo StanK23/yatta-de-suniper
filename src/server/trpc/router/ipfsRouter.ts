@@ -3,7 +3,7 @@ import { z } from "zod";
 import NFTsService from "../../../utils/services/IPFSService";
 
 export const ipfsRouter = t.router({
-  getTraits: t.procedure.input(z.string()).query((input) => {
+  getTraits: t.procedure.input(z.string()).query(async (input) => {
     const collection = NFTsService.traitsCollections.find(
       (collection) => collection.CID == input.input
     ) ?? { CID: input.input, contractAddress: "", nfts: [], traits: [] };

@@ -28,7 +28,7 @@ const ParseSettings = ({
   const mutationCancelParse = trpc.ipfs.cancelParse.useMutation({
     onSuccess: () => {
       utils.ipfs.getTraits.invalidate();
-      mutationResetAbortController.mutate();
+      mutationResetAbortController.mutateAsync();
     },
   });
 
@@ -41,7 +41,7 @@ const ParseSettings = ({
   const handleForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form: HTMLFormElement = event.target as HTMLFormElement;
-    mutationGetIPFSInfoAndParse.mutate(form.contractAddress.value);
+    mutationGetIPFSInfoAndParse.mutateAsync(form.contractAddress.value);
   };
 
   return (
